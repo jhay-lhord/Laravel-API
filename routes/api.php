@@ -8,13 +8,13 @@ use Illuminate\Http\Request;
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 
 Route::middleware('auth:sanctum')->group(function (){
-  Route::get('/user', function(Request $request){
+  Route::get('v1/user', function(Request $request){
     return $request->user();
   });
 
-  Route::get('/users', [AuthController::class, 'index']);
+  Route::get('v1/users', [AuthController::class, 'index']);
 
-  Route::get('/profile', function (Request $request) {
+  Route::get('v1/profile', function (Request $request) {
     return response()->json($request->user());
   });
 

@@ -37,11 +37,11 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $product_created =  Product::create($request->all());
+        $product =  Product::create($request->all());
 
         return response()->json([
             'message'=>'Product created successfully',
-            'product'=> $product_created
+            'product'=> $product
         ]);
     }
 
