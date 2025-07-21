@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Http\Resources\AuthResource;
 
 class AuthController extends Controller
 {
@@ -18,15 +19,20 @@ class AuthController extends Controller
 
         return response()->json([
             'message'=> 'Users retrieved Successfully',
-            'data'=>$users
+            'data'=>AuthResource::collection($users)
         ]);
     }
 
     public function login(Request $request)
     {
-        $user = User::where('email', $request->email)->first();
+        $validated = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required|string|min:8'
+        ]);
 
-        if (! $user || ! Hash::check($request->password, $user->password)) {
+        $user = User::where('email', $validated['email'])->first();
+
+        if (! $user || ! Hash::check($validated['password'], $user->password)) {
             return response()->json(['message' => 'Invalid credentials'], 401);
         }
 
@@ -34,7 +40,7 @@ class AuthController extends Controller
 
         return response()->json([
             'token' => $token,
-            'user' => $user,
+            'user' => new AuthResource($user),
         ]);
     }
 }

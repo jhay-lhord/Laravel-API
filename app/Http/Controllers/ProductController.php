@@ -4,25 +4,26 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Product;
+use App\Http\Resources\ProductResource;
 
 class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
-    {
-        $products = Product::all();
+        public function index()
+        {
+            $products = Product::all();
 
-        if($products->isEmpty()){
-            return response()->json(['No Products Found'], 404);
+            if($products->isEmpty()){
+                return response()->json(['No Products Found'], 404);
+            }
+
+            return response()->json([
+                'message'=> 'Products Retrieved Successfully',
+                'data'=>ProductResource::collection($products)
+            ], 200);
         }
-
-        return response()->json([
-            'message'=> 'Products Retrieved Successfully',
-            'data'=>$products
-        ]);
-    }
 
     /**
      * Show the form for creating a new resource.
@@ -37,12 +38,17 @@ class ProductController extends Controller
      */
     public function store(Request $request)
     {
-        $product =  Product::create($request->all());
+        $validated_product = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0'
+        ]);
+
+        $product =  Product::create($validated_product);
 
         return response()->json([
             'message'=>'Product created successfully',
-            'product'=> $product
-        ]);
+            'product'=> new ProductResource($product)
+        ], 201);
     }
 
     /**
@@ -60,7 +66,7 @@ class ProductController extends Controller
 
         return response()->json([
             'message' => 'Products retrieved successfully',
-            'data'=> $product
+            'data'=> new ProductResource($product)
         ], 200);
     }
 
@@ -77,6 +83,11 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $validated_product = $request->validate([
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0'
+        ]);
+
         $product = Product::find($id);
         if(!$product){
             return response()->json([
@@ -84,12 +95,12 @@ class ProductController extends Controller
             ]);
         }
         $productName = $product->name;
-        $product->update($request->all());
+        $product->update($validated_product);
 
         return response()->json([
             'message'=>"{$productName} updated successfully",
-            'product'=> $product
-        ]);
+            'product'=> new ProductResource($product)
+        ], 200);
     }
 
     /**
@@ -107,6 +118,6 @@ class ProductController extends Controller
         $product->destroy($id);
         return response()->json([
             'message'=> "{$productName} deleted successfully"
-        ]);
+        ], 200);
     }
 }
