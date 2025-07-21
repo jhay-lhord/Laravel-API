@@ -109,6 +109,7 @@ class ProductController extends Controller
     public function destroy(string $id)
     {
         $product =  Product::find($id);
+        
         if(!$product){
             return response()->json([
                 'message'=>"Product: {$id} not found."], 404);       
